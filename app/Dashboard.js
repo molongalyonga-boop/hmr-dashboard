@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, CartesianGrid,
+  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from "recharts";
 
 const BLUE = "#3d97e8";
@@ -164,15 +164,20 @@ export default function Dashboard() {
 
       <div className="grid2">
         <Panel title="Activity Share">
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={340}>
             <PieChart>
               <Pie data={data?.byActivity || []} dataKey="value" nameKey="name" cx="50%" cy="50%"
-                innerRadius={60} outerRadius={110} paddingAngle={1}
+                innerRadius={55} outerRadius={95} paddingAngle={1}
                 label={({ percent }) => percent > 0.03 ? `${(percent * 100).toFixed(0)}%` : ""}
                 labelLine={false}>
                 {(data?.byActivity || []).map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
+              <Legend
+                layout="vertical" align="right" verticalAlign="middle"
+                wrapperStyle={{ fontSize: 11, color: "#8a97a8", lineHeight: "16px" }}
+                iconSize={9}
+              />
             </PieChart>
           </ResponsiveContainer>
         </Panel>
