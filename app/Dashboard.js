@@ -50,6 +50,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [focus, setFocus] = useState(null); // { type: 'agent'|'client', name }
 
   const load = useCallback(async (f, t) => {
     setLoading(true); setError(null);
@@ -70,6 +71,23 @@ export default function Dashboard() {
     setPreset(p);
     const r = presetRange(p);
     if (r) { setFrom(r.from); setTo(r.to); }
+  }
+
+  // Click-to-filter: when an agent or client is focused, derive its detail view.
+  const dowNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  let view = data;
+  if (data && focus) {
+    const detail = focus.type === "agent" ? data.agentDetail?.[focus.name] : data.clientDetail?.[focus.name];
+    if (detail) {
+      const toArr = (m) => Object.keys(m || {}).map((k) => ({ name: k, value: m[k] })).sort((a, b) => b.value - a.value);
+      view = {
+        ...data,
+        byActivity: toArr(detail.act),
+        byClient: focus.type === "agent" ? toArr(detail.cli) : data.byClient,
+        byAgent: focus.type === "client" ? toArr(detail.agt) : data.byAgent,
+        dow: dowNames.map((n, i) => ({ name: n, value: (detail.dow || [])[i] || 0 })),
+      };
+    }
   }
 
   return (
@@ -97,14 +115,16 @@ export default function Dashboard() {
       </section>
 
       {/* Agent leaderboard */}
-      <Panel title="Cases by Agent — all-time">
+      <Panel title="Cases by Agent — all-time (click a bar to filter)">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data?.agentLeaderboard || []} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
             <CartesianGrid stroke="#26303d" vertical={false} />
             <XAxis dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} interval={0} angle={-40} textAnchor="end" height={70} />
             <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
             <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
-            <Bar dataKey="value" fill={BLUE} radius={[3, 3, 0, 0]} name="Cases" />
+            <Bar dataKey="value" fill={BLUE} radius={[3, 3, 0, 0]} name="Cases"
+              cursor="pointer"
+              onClick={(d) => d && d.name && setFocus({ type: "agent", name: d.name })} />
           </BarChart>
         </ResponsiveContainer>
       </Panel>
@@ -126,6 +146,13 @@ export default function Dashboard() {
 
       {error && <div className="error">{error}</div>}
 
+      {focus && (
+        <div className="focusbar">
+          <span>Filtered to {focus.type}: <strong>{focus.name}</strong></span>
+          <button onClick={() => setFocus(null)}>✕ Clear filter</button>
+        </div>
+      )}
+
       {/* Filtered KPIs */}
       <section className="kpis">
         <Kpi label="Total Cases" v={data?.kpis.totalCases} delta={data?.trend?.totalCases} />
@@ -139,7 +166,7 @@ export default function Dashboard() {
       <div className="grid2">
         <Panel title="Cases by Activity">
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart layout="vertical" data={data?.byActivity || []} margin={{ left: 20, right: 20 }}>
+            <BarChart layout="vertical" data={view?.byActivity || []} margin={{ left: 20, right: 20 }}>
               <CartesianGrid stroke="#26303d" horizontal={false} />
               <XAxis type="number" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} width={140} />
@@ -151,12 +178,14 @@ export default function Dashboard() {
 
         <Panel title="Cases by Client">
           <ResponsiveContainer width="100%" height={340}>
-            <BarChart layout="vertical" data={data?.byClient || []} margin={{ left: 20, right: 20 }}>
+            <BarChart layout="vertical" data={view?.byClient || []} margin={{ left: 20, right: 20 }}>
               <CartesianGrid stroke="#26303d" horizontal={false} />
               <XAxis type="number" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} width={140} />
               <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
-              <Bar dataKey="value" fill={BLUE} radius={[0, 3, 3, 0]} name="Cases" />
+              <Bar dataKey="value" fill={BLUE} radius={[0, 3, 3, 0]} name="Cases"
+                cursor="pointer"
+                onClick={(d) => d && d.name && setFocus({ type: "client", name: d.name })} />
             </BarChart>
           </ResponsiveContainer>
         </Panel>
@@ -166,7 +195,7 @@ export default function Dashboard() {
         <Panel title="Activity Share">
           <ResponsiveContainer width="100%" height={340}>
             <PieChart>
-              <Pie data={data?.byActivity || []} dataKey="value" nameKey="name" cx="50%" cy="50%"
+              <Pie data={view?.byActivity || []} dataKey="value" nameKey="name" cx="50%" cy="50%"
                 innerRadius={55} outerRadius={95} paddingAngle={1}
                 label={({ percent }) => percent > 0.03 ? `${(percent * 100).toFixed(0)}%` : ""}
                 labelLine={false}>
@@ -184,7 +213,7 @@ export default function Dashboard() {
 
         <Panel title="Cases by Day of Week">
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={data?.dow || []}>
+            <BarChart data={view?.dow || []}>
               <CartesianGrid stroke="#26303d" vertical={false} />
               <XAxis dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
@@ -198,7 +227,7 @@ export default function Dashboard() {
       {/* Over time */}
       <Panel title="Cases Over Time">
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={data?.overTime || []}>
+          <LineChart data={view?.overTime || []}>
             <CartesianGrid stroke="#26303d" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: "#8a97a8", fontSize: 11 }} />
             <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
