@@ -93,3 +93,21 @@ th:not(:first-child), td:not(:first-child) { text-align: right; }
   .grid2 { grid-template-columns: 1fr; }
   .dates { margin-left: 0; }
 }
+
+/* KPI trend arrows */
+.kpi-delta { font-size: 12px; font-weight: 700; margin-top: 4px; }
+.kpi-delta.up { color: #3fa864; }
+.kpi-delta.down { color: #e0709a; }
+
+/* Sortable + searchable table */
+.tablesearch {
+  width: 100%; max-width: 260px; margin-bottom: 12px;
+  background: var(--panel2); border: 1px solid var(--line); color: var(--ink);
+  padding: 8px 12px; border-radius: 8px; font-size: 13px; font-family: inherit;
+}
+.tablesearch::placeholder { color: var(--muted); }
+.tablesearch:focus { outline: none; border-color: var(--blue); }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--ink); }
+.arrow { color: var(--blue); }
+.noresults { text-align: center; color: var(--muted); padding: 20px; }

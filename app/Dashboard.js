@@ -128,10 +128,10 @@ export default function Dashboard() {
 
       {/* Filtered KPIs */}
       <section className="kpis">
-        <Kpi label="Total Cases" v={data?.kpis.totalCases} />
-        <Kpi label="Active Agents" v={data?.kpis.activeAgents} />
-        <Kpi label="Active Clients" v={data?.kpis.activeClients} />
-        <Kpi label="Activities" v={data?.kpis.activities} />
+        <Kpi label="Total Cases" v={data?.kpis.totalCases} delta={data?.trend?.totalCases} />
+        <Kpi label="Active Agents" v={data?.kpis.activeAgents} delta={data?.trend?.activeAgents} />
+        <Kpi label="Active Clients" v={data?.kpis.activeClients} delta={data?.trend?.activeClients} />
+        <Kpi label="Activities" v={data?.kpis.activities} delta={data?.trend?.activities} />
         <Kpi label="Case / Agent" v={data?.kpis.casePerAgent} />
       </section>
 
@@ -203,29 +203,78 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </Panel>
 
-      {/* Agent productivity table */}
+      {/* Agent productivity table — sortable + searchable */}
       <Panel title="Agent Productivity — all-time">
-        <div className="tablewrap">
-          <table>
-            <thead>
-              <tr><th>First Name</th><th>Case Vol</th><th>Activities</th><th>Avg Daily</th><th>Active Days</th></tr>
-            </thead>
-            <tbody>
-              {(data?.agentTable || []).map((a) => (
-                <tr key={a.name}>
-                  <td>{a.name}</td>
-                  <td>{fmt(a.caseVol)}</td>
-                  <td>{a.activitiesCount}</td>
-                  <td>{a.avgDaily}</td>
-                  <td>{a.activeDays}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AgentTable rows={data?.agentTable || []} />
       </Panel>
 
       {loading && <div className="loadingbar">Updating…</div>}
+    </div>
+  );
+}
+
+function AgentTable({ rows }) {
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState("caseVol");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const cols = [
+    { key: "name", label: "First Name", num: false },
+    { key: "caseVol", label: "Case Vol", num: true },
+    { key: "activitiesCount", label: "Activities", num: true },
+    { key: "avgDaily", label: "Avg Daily", num: true },
+    { key: "activeDays", label: "Active Days", num: true },
+  ];
+
+  function clickSort(key) {
+    if (key === sortKey) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir(key === "name" ? "asc" : "desc"); }
+  }
+
+  const filtered = rows
+    .filter((r) => r.name.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      const cmp = typeof av === "string" ? av.localeCompare(bv) : av - bv;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+  return (
+    <div>
+      <input
+        className="tablesearch"
+        placeholder="Search agent…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <div className="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              {cols.map((c) => (
+                <th key={c.key} onClick={() => clickSort(c.key)} className="sortable">
+                  {c.label}
+                  {sortKey === c.key && <span className="arrow">{sortDir === "asc" ? " ▲" : " ▼"}</span>}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((a) => (
+              <tr key={a.name}>
+                <td>{a.name}</td>
+                <td>{fmt(a.caseVol)}</td>
+                <td>{a.activitiesCount}</td>
+                <td>{a.avgDaily}</td>
+                <td>{a.activeDays}</td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={5} className="noresults">No agents match “{query}”.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -241,11 +290,18 @@ function Score({ label, v }) {
   );
 }
 
-function Kpi({ label, v }) {
+function Kpi({ label, v, delta }) {
+  const hasDelta = delta !== null && delta !== undefined;
+  const up = hasDelta && delta >= 0;
   return (
     <div className="kpi">
       <div className="kpi-val">{v === undefined ? "—" : fmt(v)}</div>
       <div className="kpi-label">{label}</div>
+      {hasDelta && (
+        <div className={"kpi-delta " + (up ? "up" : "down")}>
+          {up ? "▲" : "▼"} {Math.abs(delta)}%
+        </div>
+      )}
     </div>
   );
 }
