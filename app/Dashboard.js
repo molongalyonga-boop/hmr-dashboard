@@ -103,7 +103,7 @@ export default function Dashboard() {
             <CartesianGrid stroke="#26303d" vertical={false} />
             <XAxis dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} interval={0} angle={-40} textAnchor="end" height={70} />
             <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
-            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#ffffff08" }} />
+            <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
             <Bar dataKey="value" fill={BLUE} radius={[3, 3, 0, 0]} name="Cases" />
           </BarChart>
         </ResponsiveContainer>
@@ -143,7 +143,7 @@ export default function Dashboard() {
               <CartesianGrid stroke="#26303d" horizontal={false} />
               <XAxis type="number" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} width={140} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#ffffff08" }} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
               <Bar dataKey="value" fill={BLUE} radius={[0, 3, 3, 0]} name="Cases" />
             </BarChart>
           </ResponsiveContainer>
@@ -155,7 +155,7 @@ export default function Dashboard() {
               <CartesianGrid stroke="#26303d" horizontal={false} />
               <XAxis type="number" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} width={140} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#ffffff08" }} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
               <Bar dataKey="value" fill={BLUE} radius={[0, 3, 3, 0]} name="Cases" />
             </BarChart>
           </ResponsiveContainer>
@@ -172,7 +172,7 @@ export default function Dashboard() {
                 labelLine={false}>
                 {(data?.byActivity || []).map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
             </PieChart>
           </ResponsiveContainer>
         </Panel>
@@ -183,7 +183,7 @@ export default function Dashboard() {
               <CartesianGrid stroke="#26303d" vertical={false} />
               <XAxis dataKey="name" tick={{ fill: "#8a97a8", fontSize: 11 }} />
               <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#ffffff08" }} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} cursor={{ fill: "#ffffff08" }} />
               <Bar dataKey="value" fill={BLUE} radius={[3, 3, 0, 0]} name="Cases" />
             </BarChart>
           </ResponsiveContainer>
@@ -197,7 +197,7 @@ export default function Dashboard() {
             <CartesianGrid stroke="#26303d" vertical={false} />
             <XAxis dataKey="date" tick={{ fill: "#8a97a8", fontSize: 11 }} />
             <YAxis tick={{ fill: "#8a97a8", fontSize: 11 }} />
-            <Tooltip contentStyle={tooltipStyle} />
+            <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
             <Line type="monotone" dataKey="value" stroke={BLUE} strokeWidth={2} dot={false} name="Cases" />
           </LineChart>
         </ResponsiveContainer>
@@ -280,6 +280,8 @@ function AgentTable({ rows }) {
 }
 
 const tooltipStyle = { background: "#161d27", border: "1px solid #26303d", borderRadius: 8, color: "#e8edf3" };
+const tooltipItemStyle = { color: "#e8edf3" };
+const tooltipLabelStyle = { color: "#8a97a8" };
 
 function Score({ label, v }) {
   return (
