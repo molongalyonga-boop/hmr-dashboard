@@ -1,18 +1,22 @@
-import { readResponses } from "../../../lib/sheets";
-import { aggregate } from "../../../lib/aggregate";
+export const dynamic = "force-dynamic";
 
-// Cache for 5 minutes so the embed doesn't hammer the Sheets API on every view.
-export const revalidate = 300;
+import { kv } from "@vercel/kv";
+import { aggregateDaily } from "../../../lib/aggregateDaily";
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const from = searchParams.get("from");
-    const to = searchParams.get("to");
-    const rows = await readResponses();
-    const data = aggregate(rows, from, to);
+    const from = searchParams.get("from") || "";
+    const to = searchParams.get("to") || "";
+
+    const raw = await kv.get("dashboard-summary");
+    if (!raw) return Response.json({ error: "No summary yet. Run the refresh in Apps Script." }, { status: 503 });
+
+    const summary = typeof raw === "string" ? JSON.parse(raw) : raw;
+    const data = aggregateDaily(summary, from, to);
+
     return Response.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
     });
   } catch (err) {
     console.error("data route failed:", err);
