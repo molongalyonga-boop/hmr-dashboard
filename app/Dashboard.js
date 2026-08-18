@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
@@ -51,6 +51,29 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [focus, setFocus] = useState(null); // { type: 'agent'|'client', name }
+  const [capturing, setCapturing] = useState(false);
+  const captureRef = useRef(null);
+
+  async function downloadImage() {
+    if (!captureRef.current) return;
+    setCapturing(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(captureRef.current, {
+        backgroundColor: "#0b0f15",
+        scale: 2,
+        useCORS: true,
+      });
+      const link = document.createElement("a");
+      link.download = `HMR-Dashboard-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (e) {
+      console.error("capture failed", e);
+    } finally {
+      setCapturing(false);
+    }
+  }
 
   const load = useCallback(async (f, t) => {
     setLoading(true); setError(null);
@@ -91,7 +114,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="wrap">
+    <div className="wrap" ref={captureRef}>
       <header className="top">
         <div className="brand">
           <span className="logo">HMR</span>
@@ -103,6 +126,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        <button className="export" onClick={downloadImage} disabled={capturing || !data} data-html2canvas-ignore>
+          {capturing ? "Capturing…" : "⤓ Download image"}
+        </button>
       </header>
 
       {/* Live scorecard */}

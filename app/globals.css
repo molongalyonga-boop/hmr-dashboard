@@ -124,3 +124,12 @@ th.sortable:hover { color: var(--ink); }
   border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600;
 }
 .focusbar button:hover { background: var(--blue-dk, #2b7bc4); }
+
+/* Header layout + download button */
+.top { display: flex; align-items: center; justify-content: space-between; }
+.export {
+  background: var(--blue); color: #fff; border: none; padding: 9px 16px;
+  border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.export:hover:not(:disabled) { background: #2b7bc4; }
+.export:disabled { opacity: 0.6; cursor: default; }
