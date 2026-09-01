@@ -1,10 +1,18 @@
 export const dynamic = "force-dynamic";
 
 import { kv } from "@vercel/kv";
+import { auth } from "../../../lib/auth";
 import { aggregateDaily } from "../../../lib/aggregateDaily";
 
 export async function GET(req) {
   try {
+    // Gate the data itself, not just the page. Without this the JSON stays
+    // public to anyone who finds the URL, even with the dashboard locked.
+    const session = await auth();
+    if (!session?.user) {
+      return Response.json({ error: "Not signed in." }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from") || "";
     const to = searchParams.get("to") || "";
@@ -16,7 +24,7 @@ export async function GET(req) {
     const data = aggregateDaily(summary, from, to);
 
     return Response.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      headers: { "Cache-Control": "private, no-store" },
     });
   } catch (err) {
     console.error("data route failed:", err);
